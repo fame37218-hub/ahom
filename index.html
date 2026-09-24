@@ -41,7 +41,7 @@
             <!-- ====== TAB 1: FORM ====== -->
             <div id="section-record" class="block">
                 <form id="mainForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-medium mb-1">ผู้จ่าย <span class="text-red-500">*</span></label>
                             <select id="payer" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none bg-gray-50">
@@ -54,11 +54,12 @@
                                 <option value="" disabled selected>กำลังโหลด...</option>
                             </select>
                         </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">หมวดหมู่ <span class="text-gray-400 text-xs">(กรอกเองได้)</span></label>
-                        <input type="text" id="category" placeholder="เช่น ค่าอาหาร, ค่าเดินทาง" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">หมวดหมู่ <span class="text-red-500">*</span></label>
+                            <select id="category" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none bg-gray-50">
+                                <option value="" disabled selected>กำลังโหลด...</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div>
@@ -98,7 +99,7 @@
                 <!-- Filters -->
                 <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
                     <h3 class="text-sm font-semibold text-gray-600 mb-3"><i class="fas fa-filter mr-1"></i> ตัวกรองข้อมูล</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
                         <div>
                             <label class="block text-xs mb-1">ตั้งแต่วันที่</label>
                             <input type="date" id="filter-start" class="w-full p-2 border rounded outline-none">
@@ -114,6 +115,10 @@
                         <div>
                             <label class="block text-xs mb-1">การเบิกจ่าย</label>
                             <select id="filter-expense" class="w-full p-2 border rounded outline-none"><option value="">ทั้งหมด</option></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs mb-1">หมวดหมู่</label>
+                            <select id="filter-category" class="w-full p-2 border rounded outline-none"><option value="">ทั้งหมด</option></select>
                         </div>
                     </div>
                     <div class="mt-3 flex justify-end gap-2">
@@ -198,21 +203,36 @@
                 
                 const payerSelect = document.getElementById('payer');
                 const expenseSelect = document.getElementById('expenseType');
+                const categorySelect = document.getElementById('category');
+
                 const filterPayer = document.getElementById('filter-payer');
                 const filterExpense = document.getElementById('filter-expense');
+                const filterCategory = document.getElementById('filter-category');
 
                 payerSelect.innerHTML = '<option value="" disabled selected>เลือกผู้จ่าย</option>';
                 expenseSelect.innerHTML = '<option value="" disabled selected>เลือกการเบิกจ่าย</option>';
+                categorySelect.innerHTML = '<option value="" disabled selected>เลือกหมวดหมู่</option>';
 
-                data.payers.forEach(item => {
-                    payerSelect.add(new Option(item, item));
-                    filterPayer.add(new Option(item, item));
-                });
+                if (data.payers) {
+                    data.payers.forEach(item => {
+                        payerSelect.add(new Option(item, item));
+                        filterPayer.add(new Option(item, item));
+                    });
+                }
 
-                data.categories.forEach(item => {
-                    expenseSelect.add(new Option(item, item));
-                    filterExpense.add(new Option(item, item));
-                });
+                if (data.expenseTypes) {
+                    data.expenseTypes.forEach(item => {
+                        expenseSelect.add(new Option(item, item));
+                        filterExpense.add(new Option(item, item));
+                    });
+                }
+
+                if (data.categories) {
+                    data.categories.forEach(item => {
+                        categorySelect.add(new Option(item, item));
+                        filterCategory.add(new Option(item, item));
+                    });
+                }
             } catch (err) {
                 console.error("Error loading options", err);
                 document.getElementById('payer').innerHTML = '<option value="">โหลดล้มเหลว</option>';
@@ -343,12 +363,14 @@
             const fEnd = document.getElementById('filter-end').value;
             const fPayer = document.getElementById('filter-payer').value;
             const fExpense = document.getElementById('filter-expense').value;
+            const fCategory = document.getElementById('filter-category').value;
 
             // กรองข้อมูล
             let filtered = fullHistoryData.filter(row => {
                 let pass = true;
                 if(fPayer && row.payer !== fPayer) pass = false;
                 if(fExpense && row.expenseType !== fExpense) pass = false;
+                if(fCategory && row.category !== fCategory) pass = false;
                 if(fStart && row.date.substring(0,10) < fStart) pass = false;
                 if(fEnd && row.date.substring(0,10) > fEnd) pass = false;
                 return pass;
@@ -403,6 +425,7 @@
             document.getElementById('filter-end').value = '';
             document.getElementById('filter-payer').value = '';
             document.getElementById('filter-expense').value = '';
+            document.getElementById('filter-category').value = '';
             renderHistory();
         }
     </script>
