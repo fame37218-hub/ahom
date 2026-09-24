@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบันทึกปู่ย่า</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap');
+        body { font-family: 'Sarabun', sans-serif; background-color: #f0fdf4; }
+        .recording { animation: pulse 1.5s infinite; color: #ef4444; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .tab-active { border-bottom: 2px solid #22c55e; color: #166534; font-weight: 600; }
+        .tab-inactive { color: #6b7280; font-weight: 400; hover:text-gray-900; }
+        /* Loader */
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #22c55e; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="p-2 md:p-6 text-gray-800">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
+        
+        <!-- Header & Tabs -->
+        <div class="bg-green-600 text-white p-6 text-center">
+            <h1 class="text-2xl font-bold"><i class="fas fa-book-open mr-2"></i> ระบบบันทึกปู่ย่า</h1>
+        </div>
+        
+        <div class="flex border-b border-gray-200">
+            <button onclick="switchTab('record')" id="tab-record" class="flex-1 py-4 text-center tab-active transition-all focus:outline-none">
+                <i class="fas fa-edit mr-1"></i> บันทึกข้อมูล
+            </button>
+            <button onclick="switchTab('history')" id="tab-history" class="flex-1 py-4 text-center tab-inactive transition-all focus:outline-none">
+                <i class="fas fa-history mr-1"></i> ประวัติและสรุป
+            </button>
+        </div>
+
+        <div class="p-6 md:p-8">
+            
+            <!-- ====== TAB 1: FORM ====== -->
+            <div id="section-record" class="block">
+                <form id="mainForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">ผู้จ่าย <span class="text-red-500">*</span></label>
+                            <select id="payer" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none bg-gray-50">
+                                <option value="" disabled selected>กำลังโหลด...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">การเบิกจ่าย <span class="text-red-500">*</span></label>
+                            <select id="expenseType" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none bg-gray-50">
+                                <option value="" disabled selected>กำลังโหลด...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">หมวดหมู่ <span class="text-gray-400 text-xs">(กรอกเองได้)</span></label>
+                        <input type="text" id="category" placeholder="เช่น ค่าอาหาร, ค่าเดินทาง" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">รายละเอียด (ถ้ามี)</label>
+                        <div class="relative">
+                            <textarea id="details" rows="3" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none pr-12" placeholder="พิมพ์ หรือใช้เสียง..."></textarea>
+                            <button type="button" id="micBtn" onclick="toggleSpeechRecognition()" class="absolute right-2 bottom-2 p-2 text-gray-500 hover:text-green-600 rounded-full transition-colors">
+                                <i class="fas fa-microphone text-xl"></i>
+                            </button>
+                        </div>
+                        <p id="micStatus" class="text-xs text-green-600 mt-1 hidden animate-pulse">กำลังฟังเสียงของคุณ...</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">หมายเหตุ (ถ้ามี)</label>
+                            <input type="text" id="remarks" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">ภาพแนบ (ถ้ามี)</label>
+                            <input type="file" id="fileUpload" accept="image/*,.pdf" class="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" id="submitBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg shadow-md transition-all">
+                            <span id="btnText"><i class="fas fa-save mr-1"></i> บันทึกข้อมูล</span>
+                        </button>
+                    </div>
+                    <div id="notification" class="mt-4 p-3 rounded-lg hidden text-center font-medium"></div>
+                </form>
+            </div>
+
+            <!-- ====== TAB 2: HISTORY ====== -->
+            <div id="section-history" class="hidden">
+                
+                <!-- Filters -->
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
+                    <h3 class="text-sm font-semibold text-gray-600 mb-3"><i class="fas fa-filter mr-1"></i> ตัวกรองข้อมูล</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        <div>
+                            <label class="block text-xs mb-1">ตั้งแต่วันที่</label>
+                            <input type="date" id="filter-start" class="w-full p-2 border rounded outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs mb-1">ถึงวันที่</label>
+                            <input type="date" id="filter-end" class="w-full p-2 border rounded outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs mb-1">ผู้จ่าย</label>
+                            <select id="filter-payer" class="w-full p-2 border rounded outline-none"><option value="">ทั้งหมด</option></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs mb-1">การเบิกจ่าย</label>
+                            <select id="filter-expense" class="w-full p-2 border rounded outline-none"><option value="">ทั้งหมด</option></select>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex justify-end gap-2">
+                        <button onclick="clearFilters()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"><i class="fas fa-times mr-1"></i> ล้าง</button>
+                        <button onclick="renderHistory()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm shadow"><i class="fas fa-search mr-1"></i> ค้นหา</button>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-3 gap-4 mb-6 text-center">
+                    <div class="bg-blue-50 border border-blue-100 p-3 rounded-xl">
+                        <p class="text-xs text-blue-600 font-semibold mb-1">จำนวนรายการทั้งหมด</p>
+                        <p class="text-2xl font-bold text-blue-800" id="sum-count">0</p>
+                    </div>
+                    <div class="col-span-2 bg-orange-50 border border-orange-100 p-3 rounded-xl text-left flex items-center">
+                        <div>
+                            <p class="text-xs text-orange-600 font-semibold mb-1"><i class="fas fa-info-circle mr-1"></i> สรุปตามหมวดหมู่ (จากที่กรอง)</p>
+                            <p class="text-sm text-orange-800" id="sum-categories">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+                    <table class="w-full text-sm text-left whitespace-nowrap">
+                        <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th class="px-4 py-3">วัน-เวลา</th>
+                                <th class="px-4 py-3">ผู้จ่าย</th>
+                                <th class="px-4 py-3">เบิกจ่าย</th>
+                                <th class="px-4 py-3">หมวดหมู่</th>
+                                <th class="px-4 py-3">รายละเอียด</th>
+                                <th class="px-4 py-3 text-center">ไฟล์แนบ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="divide-y divide-gray-200 bg-white">
+                            <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">กำลังโหลดข้อมูล...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ====================================================================
+        // 🛑 สำคัญมาก: นำ URL ของ Web App จาก Apps Script มาวางตรงนี้
+        // ====================================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbxpb_0pQ_B4F-xMIHU-erjas8YKiLcBv7E8T5ChH4_EnSgZqykde43kwj1f0bBiW6Sh/exec"; // เปลี่ยน URL นี้
+
+        let fullHistoryData = []; // เก็บข้อมูลประวัติทั้งหมด
+
+        // --- 1. การจัดการ UI ทั่วไป ---
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchOptions(); // โหลดตัวเลือกสำหรับฟอร์ม
+            fetchHistory(); // โหลดประวัติล่วงหน้า
+        });
+
+        function switchTab(tab) {
+            document.getElementById('section-record').classList.toggle('hidden', tab !== 'record');
+            document.getElementById('section-history').classList.toggle('hidden', tab !== 'history');
+            
+            const btnRecord = document.getElementById('tab-record');
+            const btnHistory = document.getElementById('tab-history');
+
+            if(tab === 'record') {
+                btnRecord.className = "flex-1 py-4 text-center tab-active transition-all focus:outline-none";
+                btnHistory.className = "flex-1 py-4 text-center tab-inactive transition-all focus:outline-none";
+            } else {
+                btnRecord.className = "flex-1 py-4 text-center tab-inactive transition-all focus:outline-none";
+                btnHistory.className = "flex-1 py-4 text-center tab-active transition-all focus:outline-none";
+                renderHistory(); // อัพเดทตารางเมื่อกดเข้าแท็บ
+            }
+        }
+
+        // --- 2. ฟังก์ชันเรียก API ---
+        async function fetchOptions() {
+            try {
+                const res = await fetch(`${API_URL}?action=getOptions`);
+                const data = await res.json();
+                
+                const payerSelect = document.getElementById('payer');
+                const expenseSelect = document.getElementById('expenseType');
+                const filterPayer = document.getElementById('filter-payer');
+                const filterExpense = document.getElementById('filter-expense');
+
+                payerSelect.innerHTML = '<option value="" disabled selected>เลือกผู้จ่าย</option>';
+                expenseSelect.innerHTML = '<option value="" disabled selected>เลือกการเบิกจ่าย</option>';
+
+                data.payers.forEach(item => {
+                    payerSelect.add(new Option(item, item));
+                    filterPayer.add(new Option(item, item));
+                });
+
+                data.categories.forEach(item => {
+                    expenseSelect.add(new Option(item, item));
+                    filterExpense.add(new Option(item, item));
+                });
+            } catch (err) {
+                console.error("Error loading options", err);
+                document.getElementById('payer').innerHTML = '<option value="">โหลดล้มเหลว</option>';
+            }
+        }
+
+        async function fetchHistory() {
+            try {
+                const res = await fetch(`${API_URL}?action=getHistory`);
+                const result = await res.json();
+                if(result.data) {
+                    fullHistoryData = result.data;
+                }
+            } catch (err) {
+                console.error("Error loading history", err);
+            }
+        }
+
+        // --- 3. ระบบพิมพ์ด้วยเสียง ---
+        let recognition = null;
+        let isRecording = false;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'th-TH';
+            recognition.interimResults = true;
+
+            recognition.onstart = () => {
+                isRecording = true;
+                document.querySelector('#micBtn i').classList.add('recording');
+                document.getElementById('micStatus').classList.remove('hidden');
+            };
+
+            recognition.onresult = (event) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
+                }
+                if (finalTranscript !== '') {
+                    const el = document.getElementById('details');
+                    el.value = el.value ? el.value + ' ' + finalTranscript : finalTranscript;
+                }
+            };
+
+            recognition.onend = stopRecordingUI;
+            recognition.onerror = stopRecordingUI;
+        } else {
+            document.getElementById('micBtn').style.display = 'none';
+        }
+
+        function toggleSpeechRecognition() {
+            if (!recognition) return alert("เบราว์เซอร์ไม่รองรับพิมพ์ด้วยเสียง");
+            isRecording ? recognition.stop() : recognition.start();
+        }
+
+        function stopRecordingUI() {
+            isRecording = false;
+            document.querySelector('#micBtn i').classList.remove('recording');
+            document.getElementById('micStatus').classList.add('hidden');
+        }
+
+        // --- 4. บันทึกข้อมูล (POST) ---
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            if(API_URL.includes("เปลี่ยน URL นี้")) return alert("กรุณาใส่ API_URL ในโค้ดก่อนใช้งาน");
+
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            btn.disabled = true; btn.classList.add('opacity-75');
+            btnText.innerHTML = '<div class="loader"></div> กำลังบันทึก...';
+
+            const formData = {
+                payer: document.getElementById('payer').value,
+                expenseType: document.getElementById('expenseType').value,
+                category: document.getElementById('category').value,
+                details: document.getElementById('details').value,
+                remarks: document.getElementById('remarks').value,
+                fileData: null,
+                fileName: null
+            };
+
+            const file = document.getElementById('fileUpload').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    formData.fileData = e.target.result;
+                    formData.fileName = file.name;
+                    await submitToServer(formData, btn, btnText);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                await submitToServer(formData, btn, btnText);
+            }
+        }
+
+        async function submitToServer(formData, btn, btnText) {
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(formData)
+                });
+                const result = await res.json();
+                
+                showNotification(result.message, result.success ? "success" : "error");
+                if(result.success) {
+                    document.getElementById('mainForm').reset();
+                    fetchHistory(); // อัพเดทประวัติใหม่
+                }
+            } catch (err) {
+                showNotification("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
+            } finally {
+                btn.disabled = false; btn.classList.remove('opacity-75');
+                btnText.innerHTML = '<i class="fas fa-save mr-1"></i> บันทึกข้อมูล';
+            }
+        }
+
+        function showNotification(msg, type) {
+            const el = document.getElementById('notification');
+            el.textContent = msg;
+            el.className = `mt-4 p-3 rounded-lg text-center font-medium block ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+            setTimeout(() => el.classList.add('hidden'), 5000);
+        }
+
+        // --- 5. จัดการแสดงผลประวัติและตาราง ---
+        function renderHistory() {
+            const tbody = document.getElementById('history-table-body');
+            const fStart = document.getElementById('filter-start').value;
+            const fEnd = document.getElementById('filter-end').value;
+            const fPayer = document.getElementById('filter-payer').value;
+            const fExpense = document.getElementById('filter-expense').value;
+
+            // กรองข้อมูล
+            let filtered = fullHistoryData.filter(row => {
+                let pass = true;
+                if(fPayer && row.payer !== fPayer) pass = false;
+                if(fExpense && row.expenseType !== fExpense) pass = false;
+                if(fStart && row.date.substring(0,10) < fStart) pass = false;
+                if(fEnd && row.date.substring(0,10) > fEnd) pass = false;
+                return pass;
+            });
+
+            // อัพเดทตัวเลขสรุป
+            document.getElementById('sum-count').textContent = filtered.length;
+            
+            // สรุปหมวดหมู่
+            const catCount = {};
+            filtered.forEach(r => { 
+                const cat = r.category || 'ไม่ระบุ';
+                catCount[cat] = (catCount[cat] || 0) + 1; 
+            });
+            const catText = Object.entries(catCount).map(([k, v]) => `${k}(${v})`).join(', ');
+            document.getElementById('sum-categories').textContent = catText || '-';
+
+            // วาดตาราง
+            tbody.innerHTML = '';
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>';
+                return;
+            }
+
+            filtered.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50';
+                
+                let linkHtml = '-';
+                if(row.fileUrl) {
+                    linkHtml = `<a href="${row.fileUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded text-xs"><i class="fas fa-external-link-alt"></i> เปิดไฟล์</a>`;
+                }
+
+                // ตัดเวลาออกให้เหลือแต่วันที่ และตัดรายละเอียดให้สั้นลง
+                const dateShort = row.date.split(' ')[0] || '';
+                const detailsShort = row.details.length > 30 ? row.details.substring(0,30) + '...' : row.details;
+
+                tr.innerHTML = `
+                    <td class="px-4 py-2 border-b border-gray-100">${dateShort}</td>
+                    <td class="px-4 py-2 border-b border-gray-100 font-medium">${row.payer}</td>
+                    <td class="px-4 py-2 border-b border-gray-100">${row.expenseType}</td>
+                    <td class="px-4 py-2 border-b border-gray-100"><span class="bg-gray-100 px-2 py-1 rounded text-xs">${row.category || '-'}</span></td>
+                    <td class="px-4 py-2 border-b border-gray-100 text-gray-600" title="${row.details}">${detailsShort}</td>
+                    <td class="px-4 py-2 border-b border-gray-100 text-center">${linkHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('filter-start').value = '';
+            document.getElementById('filter-end').value = '';
+            document.getElementById('filter-payer').value = '';
+            document.getElementById('filter-expense').value = '';
+            renderHistory();
+        }
+    </script>
+</body>
+</html>
