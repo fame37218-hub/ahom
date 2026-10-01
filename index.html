@@ -24,7 +24,7 @@
         
         <!-- Header & Tabs -->
         <div class="bg-green-600 text-white p-6 text-center">
-            <h1 class="text-2xl font-bold"><i class="fas fa-book-open mr-2"></i> ระบบบันทึกปู่ย่า</h1>
+            <h1 class="text-2xl font-bold"><i class="fas fa-book-open mr-2"></i> ระบบบันทึกค่าใช้จ่าย ปู่-ย่า</h1>
         </div>
         
         <div class="flex border-b border-gray-200">
@@ -45,19 +45,37 @@
                         <div>
                             <label class="block text-sm font-medium mb-1">ผู้จ่าย <span class="text-red-500">*</span></label>
                             <select id="payer" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none bg-gray-50">
-                                <option value="" disabled selected>กำลังโหลด...</option>
+                                <option value="" disabled selected>เลือกผู้จ่าย</option>
+                                <option value="พ่อ">พ่อ</option>
+                                <option value="แม่">แม่</option>
+                                <option value="เฟม">เฟม</option>
+                                <option value="นิตา">นิตา</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">การเบิกจ่าย <span class="text-red-500">*</span></label>
                             <select id="expenseType" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none bg-gray-50">
-                                <option value="" disabled selected>กำลังโหลด...</option>
+                                <option value="" disabled selected>เลือกการเบิกจ่าย</option>
+                                <option value="ออกเงินก่อน">ออกเงินก่อน</option>
+                                <option value="ตัดบัญชีปู่">ตัดบัญชีปู่</option>
+                                <option value="พ่อโอนให้ก่อน">พ่อโอนให้ก่อน</option>
+                                <option value="แม่โอนให้ก่อน">แม่โอนให้ก่อน</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">หมวดหมู่ <span class="text-red-500">*</span></label>
                             <select id="category" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none bg-gray-50">
-                                <option value="" disabled selected>กำลังโหลด...</option>
+                                <option value="" disabled selected>เลือกหมวดหมู่</option>
+                                <option value="อาหาร">อาหาร</option>
+                                <option value="ขนม-กาแฟ">ขนม-กาแฟ</option>
+                                <option value="ของใช้สิ้นเปลือง">ของใช้สิ้นเปลือง</option>
+                                <option value="ของใช้">ของใช้</option>
+                                <option value="โรงพยาบาล">โรงพยาบาล</option>
+                                <option value="คลินิค">คลินิค</option>
+                                <option value="ค่าจ้างคนดูแล">ค่าจ้างคนดูแล</option>
+                                <option value="ค่าบริการ">ค่าบริการ</option>
+                                <option value="หวย">หวย</option>
+                                <option value="ยอดยกมา">ยอดยกมา</option>
                             </select>
                         </div>
                     </div>
@@ -102,10 +120,17 @@
             <!-- ====== TAB 2: HISTORY ====== -->
             <div id="section-history" class="hidden">
                 
+                <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-3">
+                    <h2 class="text-lg font-bold text-gray-700"><i class="fas fa-list-alt mr-2"></i>ประวัติการบันทึก</h2>
+                    <button id="btn-load-history" onclick="loadHistoryData()" class="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm shadow-md transition-all flex items-center focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <i class="fas fa-sync-alt mr-2"></i> โหลดข้อมูลล่าสุด
+                    </button>
+                </div>
+
                 <!-- Filters -->
                 <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
                     <h3 class="text-sm font-semibold text-gray-600 mb-3"><i class="fas fa-filter mr-1"></i> ตัวกรองข้อมูล</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-sm">
                         <div>
                             <label class="block text-xs mb-1">ตั้งแต่วันที่</label>
                             <input type="date" id="filter-start" class="w-full p-2 border rounded outline-none">
@@ -116,15 +141,48 @@
                         </div>
                         <div>
                             <label class="block text-xs mb-1">ผู้จ่าย</label>
-                            <select id="filter-payer" class="w-full p-2 border rounded outline-none"><option value="">ทั้งหมด</option></select>
+                            <select id="filter-payer" class="w-full p-2 border rounded outline-none">
+                                <option value="">ทั้งหมด</option>
+                                <option value="พ่อ">พ่อ</option>
+                                <option value="แม่">แม่</option>
+                                <option value="เฟม">เฟม</option>
+                                <option value="นิตา">นิตา</option>
+                            </select>
                         </div>
                         <div>
                             <label class="block text-xs mb-1">การเบิกจ่าย</label>
-                            <select id="filter-expense" class="w-full p-2 border rounded outline-none"><option value="">ทั้งหมด</option></select>
+                            <select id="filter-expense" class="w-full p-2 border rounded outline-none">
+                                <option value="">ทั้งหมด</option>
+                                <option value="ออกเงินก่อน">ออกเงินก่อน</option>
+                                <option value="ตัดบัญชีปู่">ตัดบัญชีปู่</option>
+                                <option value="พ่อโอนให้ก่อน">พ่อโอนให้ก่อน</option>
+                                <option value="แม่โอนให้ก่อน">แม่โอนให้ก่อน</option>
+                            </select>
                         </div>
                         <div>
                             <label class="block text-xs mb-1">หมวดหมู่</label>
-                            <select id="filter-category" class="w-full p-2 border rounded outline-none"><option value="">ทั้งหมด</option></select>
+                            <select id="filter-category" class="w-full p-2 border rounded outline-none">
+                                <option value="">ทั้งหมด</option>
+                                <option value="อาหาร">อาหาร</option>
+                                <option value="ขนม-กาแฟ">ขนม-กาแฟ</option>
+                                <option value="ของใช้สิ้นเปลือง">ของใช้สิ้นเปลือง</option>
+                                <option value="ของใช้">ของใช้</option>
+                                <option value="โรงพยาบาล">โรงพยาบาล</option>
+                                <option value="คลินิค">คลินิค</option>
+                                <option value="ค่าจ้างคนดูแล">ค่าจ้างคนดูแล</option>
+                                <option value="ค่าบริการ">ค่าบริการ</option>
+                                <option value="หวย">หวย</option>
+                                <option value="ยอดยกมา">ยอดยกมา</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs mb-1">สถานะเบิกจ่าย</label>
+                            <select id="filter-remarks" class="w-full p-2 border rounded outline-none">
+                                <option value="">ทั้งหมด</option>
+                                <option value="pending">รอเบิกจ่าย (ว่าง)</option>
+                                <option value="paid">เบิกจ่ายแล้ว (ไม่ว่าง)</option>
+                                <optgroup label="รายการเฉพาะงวด:" id="remarks-optgroup"></optgroup>
+                            </select>
                         </div>
                     </div>
                     <div class="mt-3 flex justify-end gap-2">
@@ -134,13 +192,28 @@
                 </div>
 
                 <!-- Summary Cards แบบใหม่ -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <!-- ยอดรวมทั้งหมด -->
                     <div class="bg-green-50 border border-green-100 p-4 rounded-xl text-center shadow-sm flex flex-col justify-center">
                         <p class="text-sm text-green-700 font-semibold mb-1">ยอดรวมทั้งหมด</p>
                         <p class="text-3xl font-bold text-green-700">฿ <span id="sum-total">0.00</span></p>
                         <p class="text-xs text-green-600 mt-2"><span id="sum-count">0</span> รายการ</p>
                     </div>
+                    <!-- ยอดรอเบิกจ่าย (หมายเหตุ ว่าง) -->
+                    <div class="bg-red-50 border border-red-100 p-4 rounded-xl text-center shadow-sm flex flex-col justify-center">
+                        <p class="text-sm text-red-700 font-semibold mb-1"><i class="fas fa-hourglass-half mr-1"></i> รอเบิกจ่าย</p>
+                        <p class="text-2xl font-bold text-red-700">฿ <span id="sum-pending">0.00</span></p>
+                        <p class="text-xs text-red-600 mt-2"><span id="sum-pending-count">0</span> รายการ</p>
+                    </div>
+                    <!-- ยอดเบิกจ่ายแล้ว (หมายเหตุ ไม่ว่าง) -->
+                    <div class="bg-purple-50 border border-purple-100 p-4 rounded-xl text-center shadow-sm flex flex-col justify-center">
+                        <p class="text-sm text-purple-700 font-semibold mb-1"><i class="fas fa-check-circle mr-1"></i> เบิกจ่ายแล้ว</p>
+                        <p class="text-2xl font-bold text-purple-700">฿ <span id="sum-paid">0.00</span></p>
+                        <p class="text-xs text-purple-600 mt-2"><span id="sum-paid-count">0</span> รายการ</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <!-- ยอดตามผู้จ่าย -->
                     <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl shadow-sm">
                         <p class="text-sm text-blue-700 font-semibold mb-2 border-b border-blue-200 pb-1"><i class="fas fa-user mr-1"></i> ยอดตามผู้จ่าย</p>
@@ -164,11 +237,12 @@
                                 <th class="px-4 py-3">หมวดหมู่</th>
                                 <th class="px-4 py-3 text-right">จำนวนเงิน</th>
                                 <th class="px-4 py-3">รายละเอียด</th>
+                                <th class="px-4 py-3">หมายเหตุ</th>
                                 <th class="px-4 py-3 text-center">ไฟล์แนบ</th>
                             </tr>
                         </thead>
                         <tbody id="history-table-body" class="divide-y divide-gray-200 bg-white">
-                            <tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">กำลังโหลดข้อมูล...</td></tr>
+                            <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">กรุณากดปุ่ม "โหลดข้อมูลล่าสุด" เพื่อแสดงประวัติ</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -187,8 +261,7 @@
 
         // --- 1. การจัดการ UI ทั่วไป ---
         document.addEventListener('DOMContentLoaded', () => {
-            fetchOptions(); // โหลดตัวเลือกสำหรับฟอร์ม
-            fetchHistory(); // โหลดประวัติล่วงหน้า
+            // ไม่โหลดข้อมูลตอนเริ่มเพื่อความรวดเร็ว
         });
 
         function switchTab(tab) {
@@ -204,64 +277,69 @@
             } else {
                 btnRecord.className = "flex-1 py-4 text-center tab-inactive transition-all focus:outline-none";
                 btnHistory.className = "flex-1 py-4 text-center tab-active transition-all focus:outline-none";
-                renderHistory(); // อัพเดทตารางเมื่อกดเข้าแท็บ
+                // ถ้าย้ายมาหน้าประวัติและเคยโหลดข้อมูลไว้แล้วให้เรนเดอร์ตาราง
+                if(fullHistoryData.length > 0) {
+                    renderHistory();
+                }
             }
         }
 
-        // --- 2. ฟังก์ชันเรียก API ---
-        async function fetchOptions() {
-            try {
-                const res = await fetch(`${API_URL}?action=getOptions`);
-                const data = await res.json();
-                
-                const payerSelect = document.getElementById('payer');
-                const expenseSelect = document.getElementById('expenseType');
-                const categorySelect = document.getElementById('category');
+        // --- 2. ฟังก์ชันดึงประวัติข้อมูลด้วยตนเอง ---
+        async function loadHistoryData() {
+            const btn = document.getElementById('btn-load-history');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังโหลด...';
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500"><div class="loader"></div> กำลังดึงข้อมูลจาก Google Sheet...</td></tr>';
 
-                const filterPayer = document.getElementById('filter-payer');
-                const filterExpense = document.getElementById('filter-expense');
-                const filterCategory = document.getElementById('filter-category');
-
-                payerSelect.innerHTML = '<option value="" disabled selected>เลือกผู้จ่าย</option>';
-                expenseSelect.innerHTML = '<option value="" disabled selected>เลือกการเบิกจ่าย</option>';
-                categorySelect.innerHTML = '<option value="" disabled selected>เลือกหมวดหมู่</option>';
-
-                if (data.payers) {
-                    data.payers.forEach(item => {
-                        payerSelect.add(new Option(item, item));
-                        filterPayer.add(new Option(item, item));
-                    });
-                }
-
-                if (data.expenseTypes) {
-                    data.expenseTypes.forEach(item => {
-                        expenseSelect.add(new Option(item, item));
-                        filterExpense.add(new Option(item, item));
-                    });
-                }
-
-                if (data.categories) {
-                    data.categories.forEach(item => {
-                        categorySelect.add(new Option(item, item));
-                        filterCategory.add(new Option(item, item));
-                    });
-                }
-            } catch (err) {
-                console.error("Error loading options", err);
-                document.getElementById('payer').innerHTML = '<option value="">โหลดล้มเหลว</option>';
-            }
-        }
-
-        async function fetchHistory() {
             try {
                 const res = await fetch(`${API_URL}?action=getHistory`);
                 const result = await res.json();
                 if(result.data) {
                     fullHistoryData = result.data;
+                    updateRemarksFilterOptions(fullHistoryData);
+                    renderHistory();
                 }
             } catch (err) {
                 console.error("Error loading history", err);
+                tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-red-500">โหลดข้อมูลล้มเหลว กรุณาลองใหม่</td></tr>';
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
             }
+        }
+
+        function updateRemarksFilterOptions(data) {
+            const select = document.getElementById('filter-remarks');
+            const currentVal = select.value;
+            
+            select.innerHTML = `
+                <option value="">ทั้งหมด</option>
+                <option value="pending">รอเบิกจ่าย (ว่าง)</option>
+                <option value="paid">เบิกจ่ายแล้ว (ไม่ว่าง)</option>
+                <optgroup label="รายการเฉพาะงวด:" id="remarks-optgroup"></optgroup>
+            `;
+            
+            const optgroup = document.getElementById('remarks-optgroup');
+            const uniqueRemarks = new Set();
+            
+            // ดึงข้อความหมายเหตุที่ไม่ซ้ำ
+            data.forEach(r => {
+                if (r.remarks && r.remarks.trim() !== '') {
+                    uniqueRemarks.add(r.remarks.trim());
+                }
+            });
+            
+            uniqueRemarks.forEach(rm => {
+                optgroup.appendChild(new Option(rm, rm));
+            });
+            
+            // คืนค่าที่เคยเลือกไว้ตอนกดโหลดข้อมูลซ้ำ
+            if (currentVal) select.value = currentVal;
         }
 
         // --- 3. ระบบพิมพ์ด้วยเสียง ---
@@ -307,21 +385,65 @@
             document.getElementById('micStatus').classList.add('hidden');
         }
 
-        // --- 4. บันทึกข้อมูล (POST) ---
+        // --- 4. บันทึกข้อมูลและบีบอัดภาพ (POST) ---
+        // ฟังก์ชันบีบอัดรูปภาพฝั่งหน้าเว็บ (ช่วยให้ส่งไฟล์ได้ไวขึ้นมาก ป้องกันค้าง)
+        function compressImage(file, callback) {
+            if (!file.type.match(/image.*/)) {
+                // ถ้าไม่ใช่รูปภาพ เช่น PDF ให้อ่านเป็น base64 ตามปกติ
+                const reader = new FileReader();
+                reader.onload = (e) => callback(e.target.result);
+                reader.readAsDataURL(file);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_SIZE = 1024; // ย่อขนาดไม่เกิน 1024px
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // บีบอัดรูปเป็น JPEG ความละเอียด 70%
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    callback(dataUrl);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
         async function handleFormSubmit(event) {
             event.preventDefault();
             if(API_URL.includes("เปลี่ยน URL นี้")) return alert("กรุณาใส่ API_URL ในโค้ดก่อนใช้งาน");
 
             const btn = document.getElementById('submitBtn');
             const btnText = document.getElementById('btnText');
-            btn.disabled = true; btn.classList.add('opacity-75');
+            btn.disabled = true; btn.classList.add('opacity-75', 'cursor-not-allowed');
             btnText.innerHTML = '<div class="loader"></div> กำลังบันทึก...';
 
             const formData = {
                 payer: document.getElementById('payer').value,
                 expenseType: document.getElementById('expenseType').value,
                 category: document.getElementById('category').value,
-                amount: parseFloat(document.getElementById('amount').value) || 0, // เพิ่มจำนวนเงิน
+                amount: parseFloat(document.getElementById('amount').value) || 0,
                 details: document.getElementById('details').value,
                 remarks: document.getElementById('remarks').value,
                 fileData: null,
@@ -330,13 +452,13 @@
 
             const file = document.getElementById('fileUpload').files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    formData.fileData = e.target.result;
-                    formData.fileName = file.name;
+                // บีบอัดรูปก่อนส่ง
+                compressImage(file, async (compressedData) => {
+                    formData.fileData = compressedData;
+                    // เปลี่ยนนามสกุลเป็น .jpg ถ้ามันคือรูปภาพ
+                    formData.fileName = file.type.match(/image.*/) ? file.name.replace(/\.[^/.]+$/, "") + ".jpg" : file.name;
                     await submitToServer(formData, btn, btnText);
-                };
-                reader.readAsDataURL(file);
+                });
             } else {
                 await submitToServer(formData, btn, btnText);
             }
@@ -353,12 +475,12 @@
                 showNotification(result.message, result.success ? "success" : "error");
                 if(result.success) {
                     document.getElementById('mainForm').reset();
-                    fetchHistory(); // อัพเดทประวัติใหม่
+                    // หลังจากบันทึกไม่ต้องโหลดประวัติอัตโนมัติแล้ว ให้ผู้ใช้กดปุ่มโหลดเองเพื่อความเร็ว
                 }
             } catch (err) {
                 showNotification("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
             } finally {
-                btn.disabled = false; btn.classList.remove('opacity-75');
+                btn.disabled = false; btn.classList.remove('opacity-75', 'cursor-not-allowed');
                 btnText.innerHTML = '<i class="fas fa-save mr-1"></i> บันทึกข้อมูล';
             }
         }
@@ -378,6 +500,7 @@
             const fPayer = document.getElementById('filter-payer').value;
             const fExpense = document.getElementById('filter-expense').value;
             const fCategory = document.getElementById('filter-category').value;
+            const fRemarks = document.getElementById('filter-remarks').value;
 
             // กรองข้อมูล
             let filtered = fullHistoryData.filter(row => {
@@ -387,6 +510,20 @@
                 if(fCategory && row.category !== fCategory) pass = false;
                 if(fStart && row.date.substring(0,10) < fStart) pass = false;
                 if(fEnd && row.date.substring(0,10) > fEnd) pass = false;
+                
+                // กรองจากหมายเหตุ
+                if(fRemarks) {
+                    const isBlank = !row.remarks || row.remarks.trim() === '';
+                    if (fRemarks === 'pending') {
+                        if (!isBlank) pass = false; // เอาเฉพาะรายการที่ว่าง (รอเบิก)
+                    } else if (fRemarks === 'paid') {
+                        if (isBlank) pass = false; // เอาเฉพาะที่ไม่ว่าง (เบิกแล้ว)
+                    } else {
+                        // เจาะจงงวด/ข้อความ
+                        if (row.remarks !== fRemarks) pass = false;
+                    }
+                }
+                
                 return pass;
             });
 
@@ -397,12 +534,24 @@
             
             // คำนวณสรุปยอดต่างๆ
             let totalAmount = 0;
+            let sumPaid = 0; let countPaid = 0;
+            let sumPending = 0; let countPending = 0;
             const payerCount = {};
             const catCount = {};
 
             filtered.forEach(r => { 
                 const amt = parseFloat(r.amount) || 0;
                 totalAmount += amt;
+                
+                // แยกยอดตามสถานะ (ว่าง=รอเบิก, มีข้อความ=เบิกแล้ว)
+                const isBlank = !r.remarks || r.remarks.trim() === '';
+                if (isBlank) {
+                    sumPending += amt;
+                    countPending++;
+                } else {
+                    sumPaid += amt;
+                    countPaid++;
+                }
 
                 const payer = r.payer || 'ไม่ระบุ';
                 payerCount[payer] = (payerCount[payer] || 0) + amt;
@@ -413,6 +562,10 @@
 
             // อัพเดท UI การ์ดสรุป
             document.getElementById('sum-total').textContent = formatMoney(totalAmount);
+            document.getElementById('sum-paid').textContent = formatMoney(sumPaid);
+            document.getElementById('sum-paid-count').textContent = countPaid;
+            document.getElementById('sum-pending').textContent = formatMoney(sumPending);
+            document.getElementById('sum-pending-count').textContent = countPending;
 
             const payerHtml = Object.entries(payerCount)
                 .sort((a,b) => b[1] - a[1]) // เรียงจากมากไปน้อย
@@ -427,7 +580,7 @@
             // วาดตาราง
             tbody.innerHTML = '';
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">ไม่พบข้อมูล หรือ ยังไม่ได้โหลดข้อมูล</td></tr>';
                 return;
             }
 
@@ -444,6 +597,12 @@
                 const dateShort = row.date.split(' ')[0] || '';
                 const detailsShort = row.details.length > 30 ? row.details.substring(0,30) + '...' : row.details;
                 const displayAmount = formatMoney(parseFloat(row.amount) || 0);
+                
+                // badge สถานะเบิกจ่าย
+                const isBlank = !row.remarks || row.remarks.trim() === '';
+                const statusBadge = isBlank 
+                    ? `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[11px] whitespace-nowrap">รอเบิก</span>`
+                    : `<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[11px] block truncate max-w-[120px]" title="${row.remarks}">${row.remarks}</span>`;
 
                 tr.innerHTML = `
                     <td class="px-4 py-3 border-b border-gray-100">${dateShort}</td>
@@ -452,6 +611,7 @@
                     <td class="px-4 py-3 border-b border-gray-100"><span class="bg-gray-100 px-2 py-1 rounded text-xs">${row.category || '-'}</span></td>
                     <td class="px-4 py-3 border-b border-gray-100 text-right font-bold text-green-700">${displayAmount}</td>
                     <td class="px-4 py-3 border-b border-gray-100 text-gray-600" title="${row.details}">${detailsShort}</td>
+                    <td class="px-4 py-3 border-b border-gray-100">${statusBadge}</td>
                     <td class="px-4 py-3 border-b border-gray-100 text-center">${linkHtml}</td>
                 `;
                 tbody.appendChild(tr);
@@ -464,6 +624,7 @@
             document.getElementById('filter-payer').value = '';
             document.getElementById('filter-expense').value = '';
             document.getElementById('filter-category').value = '';
+            document.getElementById('filter-remarks').value = '';
             renderHistory();
         }
     </script>
